@@ -1,0 +1,10 @@
+﻿Senaryo,Açıklama,Skor_Yöntemi,Boyut,Özellik_Sayısı,Silhouette (k=3),Optimal_k,Düşük Risk,Orta Risk,Yüksek Risk
+1,PDF Orijinal Yöntem (Kapsamlı),WLC,1D,5,0.5849,2,922,677,327
+2,Orijinal Yöntem + Yeni Özellikler,WLC,1D,13,0.5569,2,942,688,296
+3,CRITIC Ağırlık + Özellikler,WLC,1D,13,0.5357,2,636,791,499
+4,Multiplikatif Skor,Multi,1D,13,0.8136,2,1590,334,2
+5,TOPSIS Skor,TOPSIS,1D,13,0.6658,3,1283,635,8
+6,Çok Boyutlu Kümeleme (nD),WLC,nD,13,0.5161,2,1490,428,8
+7,Full Gelişmiş Pipeline (B),TOPSIS,nD,15,0.2111,2,198,747,981
+8,Robust Normalizasyon + CRITIC,WLC,1D,13,0.5464,2,223,799,904
+9,PDF Yöntem + Spatial Lag (Moran's I),WLC,1D,15,0.5505,2,932,703,291

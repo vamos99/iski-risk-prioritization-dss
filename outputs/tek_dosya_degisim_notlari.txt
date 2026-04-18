@@ -1,0 +1,744 @@
+TEK DOSYA DEGISIM / NOT DERLEMESI
+================================
+
+Olusturma tarihi: 2026-04-04 17:18:16 +03
+
+Bu dosya, daginik rapor/not dosyalarinin tek dosyada birlestirilmis halidir.
+
+------------------------------------------------------------
+KAYNAK: outputs/methodology_alignment_report.md
+------------------------------------------------------------
+
+# Methodology Alignment Report
+
+## 1) Kod-Gerçeği Akışı
+1. Bronze veri alımı ve kalite temizliği (canonical anahtar).
+2. Dasimetrik dağıtım (ilçe -> mahalle) ve karar matrisi üretimi.
+3. Feature engineering (operasyonel türevler + yıl-duyarlı spatial lag + trend).
+4. Normalizasyon (Track A/B) ve ağırlık setleri (Shannon/CRITIC).
+5. Ar-Ge karşılaştırma hattı (03_04) sadece karşılaştırma amaçlıdır.
+6. Nihai karar motoru: Adım 5 Senaryo 11 (AHP + Quantile + PoF/CoF).
+7. Doğrulama: Moran's I (arıza_2022, arıza_2023, risk_s11).
+
+## 2) Tez Metninde Düzeltilmesi Gereken Noktalar
+- K-Means nihai sınıflandırma yöntemi değildir; Ar-Ge/karşılaştırma hattıdır.
+- Nihai yöntem AHP + Quantile + PoF/CoF risk matrisi olarak belirtilmelidir.
+- Moran doğrulaması hem arıza tabanında hem nihai risk skoru (risk_s11) üzerinde raporlanmalıdır.
+
+## 3) Yeni Flowchart (Kompakt)
+`Veri Alımı -> Temizlik/Standart -> Mekânsal Uyum -> Feature Engineering -> AHP+PoF/CoF -> Quantile -> Moran Doğrulama -> KDS Çıktıları`
+
+## 4) Yeni Flowchart (Detaylı)
+```mermaid
+flowchart TD
+    A[Bronze Veri Alımı] --> B[Temizlik ve Standardizasyon]
+    B --> C[Dasimetrik Uyum: ilçe->mahalle]
+    C --> D[Feature Engineering]
+    D --> E[AHP Ağırlıkları + PoF/CoF Skorları]
+    E --> F[Quantile (tercil) Sınıflandırma]
+    F --> G[Moran's I: ariza_2022, ariza_2023, risk_s11]
+    G --> H[Tablo/Harita/KDS Çıktıları]
+```
+
+## 5) Değişen Çıktılar
+- `data/gold/ileri_duzey_senaryolar_mahalle_bazli.csv` (satır=963)
+- `data/gold/morans_i_risk_results.csv`
+- `data/gold/morans_i_all_results.csv` (kayıt=3)
+
+## 6) Kısa Sonuç
+- Risk dağılımı: {"Düşük Risk (Yeşil Bölge)": 431, "Orta Risk (Sarı Bölge)": 356, "Kritik Risk (Kırmızı Bölge)": 176}
+- risk_s11 Moran: I=0.6054, p=0.002, z=29.3467
+
+
+
+------------------------------------------------------------
+KAYNAK: outputs/tez_once_sonra_degisiklik_ve_uyum_raporu.txt
+------------------------------------------------------------
+
+TEZ METNİ İLE KOD-GERÇEĞİ UYUM RAPORU (ÖNCE/SONRA)
+====================================================
+
+1) Önceden Belgede Baskın Olan Çerçeve
+- Taslaklarda K-Means, nihai sınıflandırma yöntemi gibi sunulabiliyordu.
+- Moran doğrulaması çoğunlukla arıza serileri ile sınırlıydı; final risk skoru için raporlama net değildi.
+- Spatial lag değişkeninin yıl-duyarlılığı açık değildi; 2022-2023 ayrımında leakage riski oluşabiliyordu.
+- Bazı metinlerde veri kapsamı ile kod gerçekliği arasında (POI/komşuluk/mekânsal kalite) ifade farkları vardı.
+
+2) Kodda Yapılan Nihai Düzeltmeler
+- Nihai yöntem sabitlendi: AHP + Quantile + PoF/CoF (Senaryo 11).
+- K-Means hattı R&D/karşılaştırma hattı olarak ayrıldı; final karar motoru dışında konumlandı.
+- Spatial lag yıl-duyarlı hale getirildi: komşu eşleşmesi anahtar+yıl düzleminde hesaplanıyor.
+- Leakage güvenlik katmanı eklendi: komsu_ort_ariza yıllar arasında tamamen sabitse kontrol FAIL veriyor.
+- Moran doğrulaması çift mimariye taşındı: ariza_2022, ariza_2023 ve risk_s11 birlikte raporlanıyor.
+- Normalize öncesi/sonrası NaN-negatif kontrolleri güçlendirildi.
+- Mekânsal kalite ve join kapsama oranları rapora dahil edildi (both/left_only/right_only).
+
+3) Sonuçlar Ne Oldu? (Güncel Çıktı)
+- Analiz birimi: 963 mahalle (2022-2023 ağırlıklı toplulaştırma).
+- Risk dağılımı: Kritik=176, Orta=356, Düşük=431.
+- Kritik oran: 18.28%.
+- Sürekli risk ortalama/medyan: 0.3073 / 0.3251.
+
+3.1 İlçe bulguları (ortalama sürekli riskte ilk 5)
+- ATAŞEHİR: ort_risk=0.4227, kırmızı=10/17 (58.82%)
+- SULTANGAZİ: ort_risk=0.4160, kırmızı=10/15 (66.67%)
+- BAŞAKŞEHİR: ort_risk=0.4093, kırmızı=5/11 (45.45%)
+- AVCILAR: ort_risk=0.4033, kırmızı=4/10 (40.00%)
+- KADIKÖY: ort_risk=0.4016, kırmızı=9/21 (42.86%)
+
+3.2 İlçe bulguları (kırmızı adetinde ilk 5)
+- BAĞCILAR: kırmızı_adet=11, ort_risk=0.3749
+- FATİH: kırmızı_adet=10, ort_risk=0.2932
+- ATAŞEHİR: kırmızı_adet=10, ort_risk=0.4227
+- SULTANGAZİ: kırmızı_adet=10, ort_risk=0.4160
+- ÜSKÜDAR: kırmızı_adet=10, ort_risk=0.3612
+
+3.3 En riskli 5 mahalle (sürekli risk)
+- ATAŞEHİR / İÇERENKÖY: risk=0.5359, PoF=0.6443, CoF=0.8318
+- TUZLA / AYDINLI: risk=0.5168, PoF=0.5951, CoF=0.8684
+- KÜÇÜKÇEKMECE / HALKALI MERKEZ: risk=0.4968, PoF=0.6198, CoF=0.8015
+- ATAŞEHİR / KÜÇÜKBAKKALKÖY: risk=0.4929, PoF=0.6435, CoF=0.7660
+- SULTANGAZİ / ESENTEPE: risk=0.4844, PoF=0.6195, CoF=0.7819
+
+3.4 PoF x CoF matris özeti
+- (1,1)=211, (1,2)=87, (1,3)=23
+- (2,1)=79, (2,2)=118, (2,3)=123
+- (3,1)=31, (3,2)=115, (3,3)=176
+- Kritik hücre (3,3) = 176 mahalle.
+
+3.5 Moran doğrulaması (permutation tabanlı)
+- ariza_2022: I=0.4682, p=0.002, z=24.7414, n=963, w=5408, perm=499
+- ariza_2023: I=0.4870, p=0.002, z=25.3195, n=963, w=5408, perm=499
+- risk_s11: I=0.6054, p=0.002, z=29.3467, n=963, w=5556, perm=499
+
+4) Önce/Sonra Kıyas (varsa eski metin referansına göre)
+- Eski metin: Kritik=177, Orta=355, Düşük=431
+- Güncel kod çıktısı: Kritik=176, Orta=356, Düşük=431
+- Fark: Kritik=-1, Orta=+1, Düşük=+0
+- Eski ortalama/medyan: 0.3084/0.3263 -> Güncel: 0.3073/0.3251
+- Bu farklar esas olarak yıl-duyarlı spatial lag düzeltmesi ve kalite kontrolleri sonrası yeniden üretimden kaynaklanır.
+
+5) Yaklaşım Doğru mu?
+- Evet, proje amacı bir tahmin modeli kurmak değil; bakım/yenileme önceliklendirmesi yapan karar destek modelidir.
+- Bu amaç için AHP + Quantile + PoF/CoF yaklaşımı kod ve çıktı düzeyinde tutarlıdır.
+- Eğer geleceğe dönük arıza tahmini hedeflenecekse, ayrı bir supervised model hattı (train/val/test, leakage önlemi, out-of-time test) eklenmelidir.
+
+6) Tez Metninde Mutlaka Netleştirilmesi Gereken Cümleler
+- "K-Means nihai sınıflandırma yöntemi değildir; karşılaştırma amaçlı Ar-Ge hattıdır."
+- "Nihai karar motoru Senaryo 11 kapsamında AHP + Quantile + PoF/CoF risk matrisidir."
+- "Mekânsal doğrulama, arıza serilerine ek olarak final risk skoru (risk_s11) için de Moran's I ile sınanmıştır."
+- "Spatial lag değişkeni yıl-duyarlı olarak anahtar+yıl düzleminde hesaplanmıştır."
+
+7) Sonuç bölümüne eklenecek tartışma/kısıt/öneri omurgası
+- Tartışma: Kritik mahallelerin sadece adet değil yoğunluk (oran + ortalama risk) üzerinden önceliklendirilmesi.
+- Kısıtlar: iki yıllık pencere, fiziksel boru parametrelerinin doğrudan bulunmaması, dışsal etkenlerin sınırlı temsili.
+- Öneriler: out-of-time validasyon, daha uzun zaman serisi, maliyet-etki optimizasyonu, saha geri-bildirim döngüsü.
+
+
+------------------------------------------------------------
+KAYNAK: outputs/tez_detayli_bolum_analiz_notlari.txt
+------------------------------------------------------------
+
+TEZ İÇERİK DENETİMİ (BÖLÜM 1-4) + DOĞRULAMA STRATEJİSİ
+========================================================
+Tarih: 2026-04-04
+Kaynaklar: 
+- outputs/23050701056__HALIL_KIYAK_MIS405_FINAL_UPDATED.docx
+- Kod akışı (pipeline/00,01,03_04,05 ve src/*)
+- Güncel çıktılar (data/silver, data/gold, outputs/chapter4)
+
+A) EN KRİTİK SORU: BU ÇALIŞMA 2022 İLE 2023 TAHMİNİ Mİ YAPIYOR?
+---------------------------------------------------------------
+Kısa cevap: Hayır.
+
+Belgede ne deniyor?
+- 1.2 (Araştırmanın Amacı) ve 4.7 metni bu çalışmayı "karar destek / önceliklendirme" olarak tanımlıyor.
+- 4.7'de açık ifade var: "bu çalışma bir tahmin modeli değil, karar destek modelidir".
+
+Kod-gerçekliği ne?
+- Nihai model pipeline/05'te 2022 (%40) + 2023 (%60) ağırlıklı birleşik risk skoru üretiyor.
+- Çıktı: mahalle bazında öncelik sırası (kritik/orta/düşük) ve sürekli risk skoru.
+- Gelecek yıl (2024) için supervised forecast modeli kurulmamış.
+
+Sonuç:
+- Bu tez "2022 -> 2023 tahmini" kanıtı üretmiyor.
+- Bu tez "mevcut iki yıllık veriden kurumsal bakım-yenileme önceliği" üretiyor.
+
+
+B) YÖNETİCİYE NE DİYEBİLİRİZ? (2024 KARAR İLETİŞİMİ)
+-----------------------------------------------------
+Doğru yönetici mesajı:
+1) "Bu çıktı bir tahmin değil, risk önceliklendirme ve kaynak tahsis aracıdır."
+2) "2024'te önce kırmızı gruba odaklanın; ancak kesin performans doğrulaması için 2024 gerçekleşen arıza/kesinti verisiyle backtest yapılmalıdır."
+3) "Saha müdahalesi yapılan mahallelerle yapılmayan mahalleler ayrıştırılarak etki analizi yapılmadan 'model başardı' denmemelidir."
+
+Bu söylem neden mantıklı?
+- Model açıklanabilir ve operasyonel karar için uygundur.
+- Ancak öngörü gücü ancak out-of-time veri (2024) ile test edilir.
+
+Destekleyici gözlem (kesin tahmin kanıtı değil):
+- 2022 ve 2023 arıza sıraları arasında Spearman rho = 0.9295 (n=963, p<0.001).
+- Top %20 yüksek arıza mahallelerinin yıllar arası kesişimi: 149/193 (Jaccard = 0.6287).
+- Bu, mekânsal-operasyonel kalıcılığın güçlü olabileceğini gösterir; yine de 2024 testi şarttır.
+
+
+C) 2024 DOĞRULAMASI İÇİN GEREKLİ VERİLER
+-----------------------------------------
+Asgari zorunlu set:
+1) 2024 mahalle bazlı gelen/cevaplanan arıza sayıları.
+2) 2024 mahalle bazlı susuzluk şikayet sayıları.
+3) 2024 kesinti olayları (başlangıç-bitiş, süre, mahalle).
+4) 2024 nüfus veya en azından güncellenmiş demografik vekil.
+5) 2024 ilçe tüketim verisi (mahalleye yeniden dağıtım için).
+
+Model kalitesi için kritik ek setler:
+6) Müdahale kayıtları (hangi mahallede ne zaman yenileme/bakım yapıldı).
+7) Fiziksel şebeke envanteri (boru yaşı, çap, malzeme, basınç zonu, arıza tipi).
+8) İnsan hareketliliği verisi (gündüz-gece nüfus, turizm, iş/school çekim etkisi).
+9) Yol/trafik/kazı yoğunluğu ve inşaat etkisi (altyapı stres vekili).
+
+Mevcut durum (bu projede):
+- Ham dosyalarda 2024 içeren tek kaynak: `Su-kesintileri-2023-2024.csv`.
+- Arıza/şikayet/tüketim/nüfus için 2024 seti yok.
+- Ayrıca mevcut pipeline `load_kesinti` içinde analiz yıllarını [2022, 2023] filtresiyle
+  sabitlediği için 2024 satırları model üretim akışına bilinçli olarak dahil edilmiyor.
+
+
+D) 2024 DOĞRULAMA METRİKLERİ (ÖNERİLEN)
+----------------------------------------
+1) Precision@K (ör. Top 50/100 riskli mahallede 2024 yüksek arıza oranı).
+2) Lift@K (rastgele seçime göre kaç kat daha iyi yakalama).
+3) Spearman rank korelasyonu (2023 risk sırası vs 2024 gerçekleşen arıza/kesinti).
+4) Decile monotonicity (risk dilimi yükseldikçe 2024 olay oranı artıyor mu?).
+5) Müdahale etkisi ayrıştırması (müdahale edilen mahallelerde risk düşüşü ayrı analiz).
+
+Bu turda üretilen kısmi out-of-time kontrol (yalnızca kesinti 2024):
+- Dosya: `outputs/validation_2024_partial/validation_2024_partial_summary.txt`
+- risk_vs_kesinti_olay_2024: Spearman rho=0.3977 (p<0.001)
+- risk_vs_kesinti_saat_2024: Spearman rho=0.3393 (p<0.001)
+- Top20 yakalama (olay): precision@20=0.5492, lift@20=1.6528
+- Top20 yakalama (saat): precision@20=0.2798, lift@20=1.3540
+
+Yorum:
+- Bu bulgular modelin 2024 kesinti boyutunda kısmi sinyal taşıdığını gösterir.
+- Ancak tek boyutlu olduğu için tezde \"tam doğrulama\" diye yazılmamalı; \"kısmi doğrulama\" denmeli.
+
+
+E) DATASET VE FEATURE KONTROLÜ (KODA GÖRE)
+-------------------------------------------
+Belgede geçen ana kaynaklar kodla genel olarak uyumlu.
+
+Kodda aktif kullanılan ham setler:
+- İSKİ arıza (2022, 2023)
+- İSKİ şikayet (2022, 2023)
+- İSKİ kesinti (2022-2023 ve 2023-2024 dosyalarından 2022-2023 filtreleniyor)
+- TÜİK/mahalle nüfus
+- İlçe tüketim
+- OSM tabanlı POI (eğitim/sanayi)
+- Mahalle komşuluk tablosu
+
+Karar matrisi (silver) kritik değişkenler:
+- ariza_sayisi, sikayet_sayisi, kesinti_suresi_saat, nufus, tuketim_dasimetrik
+- ariza_yogunlugu, nufus_basi_tuketim, sikayet_ariza_orani, ort_kesinti_suresi, ariza_trend
+- komsu_ort_ariza, komsu_sayisi, egitim_tesisi_sayisi, sanayi_tesis_sayisi
+
+Nihai PoF ağırlıkları:
+- ariza_sayisi, ariza_yogunlugu, komsu_ort_ariza, ort_kesinti_suresi, ariza_trend, nufus_basi_tuketim
+
+Nihai CoF ağırlıkları:
+- nufus, sikayet_sayisi, kesinti_suresi_saat, egitim_tesisi_sayisi, sanayi_tesis_sayisi, sikayet_ariza_orani, komsu_sayisi
+
+
+F) BÖLÜM 1-4 DETAYLI TUTARLILIK DENETİMİ
+-----------------------------------------
+Aşağıda "Durum" alanı:
+- UYUMLU: kodla tutarlı
+- DÜZELTİLME GEREKİR: içerik hatalı/stale/eksik
+
+1) Bölüm 1 (Giriş)
+1.1-1.5: UYUMLU
+- Amaç ve kapsam karar destek yaklaşımıyla tutarlı.
+- Kısıtlarda gündüz-gece mobilite ve dış etkenlerin kapsam dışı olduğu belirtilmiş; doğru.
+
+1.6 (Paragraf [142]): DÜZELTİLME GEREKİR
+Sorun:
+- "Tez yedi bölümden oluşmaktadır" deniyor ama mevcut dosyada 5. bölüm sonrası doğrudan kaynakça var.
+Öneri:
+- Yapı metni mevcut gerçek bölüm sayısına göre güncellenmeli.
+
+2) Bölüm 2 (Literatür)
+2.1-2.6: Büyük ölçüde UYUMLU
+
+2.7 (Paragraf [160]): DÜZELTİLME GEREKİR
+Sorun:
+- Metin "kümeleme"yi nihai yöntemin parçası gibi okuyucuya hissettirebilir.
+Kod-gerçekliği:
+- Kümeleme (K-Means) 03_04 Ar-Ge hattında; final değil.
+Öneri cümlesi:
+- "Kümeleme temelli yaklaşımlar Ar-Ge karşılaştırma hattında değerlendirilmiş, nihai karar motorunda kullanılmamıştır."
+
+3) Bölüm 3 (Materyal ve Yöntem)
+3.1: KISMEN UYUMLU
+- Veri kaynak anlatımı genel olarak doğru.
+- Küçük dil/biçim hataları var (ör. "sınırlandırıldı.Pandemi" boşluk problemi).
+
+3.2 (Paragraf [166]): DÜZELTİLME GEREKİR
+Sorun:
+- "Eksik değerler ... ilçe ve komşuluk yapısı dikkate alınarak medyan" deniyor.
+Kod-gerçekliği:
+- İmputasyon ilçe medyanı + global medyan fallback; komşuluk bazlı imputation yok.
+Öneri:
+- Komşuluk ifadesi çıkarılmalı, ilçe medyanı yaklaşımı net yazılmalı.
+
+3.3 (Paragraf [168]): DÜZELTİLME GEREKİR
+Sorun:
+- Dasimetrik dağıtımda "yardımcı mekânsal katmanlar ve komşuluk" kullanıldığı yazıyor.
+Kod-gerçekliği:
+- Dağıtım yalnızca ilçe tüketimi * (mahalle nüfusu / ilçe nüfusu) ile yapılıyor.
+Öneri:
+- Komşuluk/yerleşim deseni ifadesi çıkarılmalı; nüfus-oranlı dağıtım net belirtilmeli.
+
+3.6 ve 3.7 (Paragraflar [174], [178]): DÜZELTİLME GEREKİR
+Sorun:
+- "alternatif tercil eşik kombinasyonlarıyla duyarlılık kontrolü" yapıldığı iddiası var.
+Kod-gerçekliği:
+- Bu kontrolü üreten ayrı bir script/çıktı mevcut değil.
+Öneri:
+- Ya gerçekten ek analiz scripti yazılmalı ya da metinden bu iddia çıkarılmalı.
+
+4) Bölüm 4 (Bulgular)
+4.1: UYUMLU
+
+4.2 (Paragraf [183]): DÜZELTİLME GEREKİR (stale sayı)
+- Belgede: kritik=177, orta=355, düşük=431, ort=0.3084, medyan=0.3263
+- Güncel kod çıktısı: kritik=176, orta=356, düşük=431, ort=0.3073, medyan=0.3251
+
+4.3 (Paragraflar [186-188]): DÜZELTİLME GEREKİR (stale değer)
+- Güncel üst 3 ilçe:
+  * ATAŞEHİR: 0.4227, %58.82
+  * SULTANGAZİ: 0.4160, %66.67
+  * BAŞAKŞEHİR: 0.4093, %45.45
+
+4.4 (Paragraflar [192-196]): DÜZELTİLME GEREKİR (stale değer)
+- İlk 5 mahalle skorları güncel çıktıya göre revize edilmeli (rakamlar küçük farkla değişmiş).
+
+4.5 (Paragraf [199-201]): DÜZELTİLME GEREKİR (eksik Moran satırı)
+- Belgede sadece ariza_2022 ve ariza_2023 var.
+- Eklenmesi gereken:
+  * risk_s11: I=0.6054, p=0.0020, z=29.3467
+
+4.6 (Paragraf [209]): DÜZELTİLME GEREKİR (stale kritik adet)
+- (3,3) hücre mahalle adedi 177 değil 176.
+
+4.7: KISMEN UYUMLU
+- Mesaj doğru ama derinlik az.
+- İnsan sirkülasyonu/turizm/iş-okul çekim etkisi daha açık sınırlılık olarak eklenmeli.
+
+4.8: KISMEN UYUMLU
+- Liste var; ancak 4.x tablolarının rakamları güncellenmeden bırakılırsa içerik-format tutarlılığı bozulur.
+
+
+G) ÖNEMLİ BİÇİMSEL/ANLAMSAL HATALAR (İÇERİK KALİTESİ)
+----------------------------------------------------
+1) [150] paragraf başında kırık metin: "banlı Ağırlıklandırma..."
+2) [172] matematiksel formül satırı bozuk görünüyor; denklem olarak yeniden yazılmalı.
+3) Bazı yerlerde PoF-CoF yazımı tutarsız (PoF-Cof / PoF x CoF). Tek format kullanılmalı.
+4) 5. bölüm başlığı var ama metin yok; kaynakça hemen başlıyor.
+
+
+H) GÜNCEL SONUÇ CÜMLESİ (TEZE KONULABİLECEK KISA VERSİYON)
+-----------------------------------------------------------
+"Bu çalışma, 2022-2023 dönemine ait operasyonel verilerle mahalle ölçeğinde bakım-yenileme önceliklendirmesi üreten açıklanabilir bir karar destek modeli sunmaktadır. Nihai model AHP + Quantile + PoF/CoF mimarisiyle çalışmakta olup, 963 mahallenin 176'sı kritik, 356'sı orta ve 431'i düşük risk grubunda sınıflandırılmıştır. Mekânsal doğrulama hem arıza serileri hem de nihai risk skoru üzerinde anlamlı pozitif kümelenme göstermiştir (p=0.002)."
+
+
+I) REVİZYON ÖNCELİK SIRASI (ÖNERİLEN UYGULAMA)
+-----------------------------------------------
+1) Bölüm 4'te stale sayıların güncellenmesi (4.2-4.6).
+2) 4.5'e risk_s11 Moran satırının eklenmesi.
+3) 3.2 ve 3.3'te kod-gerçekliği dışı cümlelerin düzeltilmesi.
+4) 3.6/3.7'de yapılmayan duyarlılık analiz iddialarının temizlenmesi veya analizin gerçekten eklenmesi.
+5) 1.6 bölüm yapısının gerçek belge yapısıyla uyumlu hale getirilmesi.
+6) 5. bölüm metninin eklenmesi (ayrı dosyada hazırlandı: outputs/bolum_5_sonuc_tartisma_kisitlar_oneriler.txt).
+
+
+
+------------------------------------------------------------
+KAYNAK: outputs/tez_sonuc_gecerlilik_ve_kanit_cercevesi.txt
+------------------------------------------------------------
+
+TEZ SONUÇLARININ GEÇERLİLİK VE KANIT ÇERÇEVESİ
+=============================================
+
+1) Bu tezde ne iddia edilebilir?
+- Bu çalışma, 2022-2023 operasyonel verileri kullanarak bakım-yenileme önceliklendirmesi yapan bir Karar Destek Sistemi (KDS) üretmiştir.
+- Üretilen risk skorları, sınırlı kaynakla müdahale sırası belirlemek için açıklanabilir ve tekrarlanabilir bir karar çerçevesi sunar.
+
+2) Bu tezde ne iddia edilmemelidir?
+- "Model gelecek yılı kesin tahmin eder" iddiası kurulamaz.
+- "Sonuçlar kesin doğrudur" gibi mutlak doğruluk söylemi akademik olarak uygun değildir.
+- Çalışma bir forecast modeli değil, önceliklendirme modelidir.
+
+3) Sonuçların güvenilirliğini artıran kanıtlar
+3.1 İç tutarlılık ve metodolojik denetim
+- AHP tutarlılık oranları: PoF CR=0.0003, CoF CR=0.0003.
+- Bu değerler literatürde kabul edilen eşiklerin altındadır.
+
+3.2 Mekânsal doğrulama
+- Moran's I sonuçları anlamlıdır:
+  - ariza_2022: I=0.4682, p=0.002
+  - ariza_2023: I=0.4870, p=0.002
+  - risk_s11: I=0.6054, p=0.002
+- Yani modelin kullandığı risk sinyali mekânda rastgele dağılmamaktadır.
+
+3.3 Veri kalite ve leakage kontrolleri
+- `anahtar,yil` duplikasyon kontrolü: 0
+- Spatial lag yıl-duyarlı hesaplanmıştır (anahtar+yıl düzlemi).
+- Spatial lag için "yıllar arasında tamamen sabit kalma" kontrolü eklenmiş; olası leakage riski baskılanmıştır.
+- Normalize öncesi/sonrası NaN ve negatif kontrol katmanları çalıştırılmıştır.
+
+3.4 Out-of-time (kısmi) bulgu
+- 2024 için projede yalnızca kesinti verisi bulunduğundan kısmi doğrulama yapılmıştır.
+- 2024 kesinti olay adedi ile risk skoru arasında anlamlı pozitif ilişki vardır (Spearman rho=0.3977, p<0.001).
+- Top %20 riskli mahalleler, kesinti olay yoğunluğu yüksek mahalleleri rastgele seçime göre ~1.65 kat daha iyi yakalamıştır.
+- Bu bulgu "kısmi destek" sağlar; tam doğrulama yerine geçmez.
+
+4) Neden yine de temkinli kalmak gerekir?
+- 2024 arıza/şikayet/tüketim/nüfus setleri tam olmadığı için tam out-of-time doğrulama yoktur.
+- Müdahale logları olmadığı için "model başarısı" ile "saha müdahalesi etkisi" ayrıştırılamaz.
+- Fiziksel şebeke parametreleri (boru yaşı, çap, malzeme vb.) eksiktir.
+- İnsan hareketliliği (turizm, işe gidiş-geliş, okul etkisi, gündüz-gece nüfus farkı) doğrudan modele girmemiştir.
+
+5) Tezde önerilen doğru ifade biçimi
+- "Bu sonuçlar, modelin karar destek amaçlı kullanılabilirliğini desteklemektedir."
+- "Bulgular, tam tahmin doğrulaması yerine önceliklendirme doğruluğu bağlamında yorumlanmalıdır."
+- "2024 ve sonrası için çok-kaynaklı out-of-time doğrulama tamamlandığında model performansı daha güçlü biçimde değerlendirilecektir."
+
+6) Sonuç cümlesi (öneri)
+"Bu çalışma, mutlak tahmin doğruluğu iddiası kurmaktan ziyade, veri kısıtlı koşullarda bakım-yenileme önceliğini şeffaf ve izlenebilir biçimde üreten bir karar destek yaklaşımı sunmaktadır. Elde edilen kanıtlar modelin operasyonel kullanılabilirliğini desteklemekte; bununla birlikte tam performans teyidi için 2024 ve sonrası çok-kaynaklı doğrulama setlerinin tamamlanması gerekmektedir."
+
+7) Yöneticiye nasıl anlatılmalıdır?
+- "Bu çıktı bir tahmin garantisi değil, bakım önceliklendirme haritasıdır."
+- "2022-2023 verisinden öğrenilen risk örüntüsü, 2024 kesinti yoğunluğu ile kısmi düzeyde uyum göstermiştir."
+- "Bu nedenle KDS, saha ekipleri için ilk tarama ve bütçe önceliği aracı olarak kullanılmalıdır; nihai karar saha doğrulaması ile verilmelidir."
+
+8) Tam doğrulama için hangi veriler gerekir?
+- 2024 mahalle bazlı arıza sayısı (2022/2023 ile aynı granülarite)
+- 2024 mahalle bazlı susuzluk şikayet verisi
+- 2024 ilçe/mahalle su tüketim verisi
+- 2024 nüfus veya aktif abone güncellemesi
+- 2024 bakım/müdahale logları (hangi noktaya ne zaman müdahale edildi)
+- Mümkünse dışsal etkenler: mevsimsellik, gündüz-gece nüfus hareketi, turizm/iş/okul yoğunluğu
+
+9) Tezde kullanılacak akademik ifade sınırı
+- "Model doğrulanmıştır" yerine "modelin karar destek kullanılabilirliği için kanıt üretilmiştir" ifadesi kullanılmalıdır.
+- "Kesin doğru sonuç" yerine "eldeki veri kapsamı içinde tutarlı ve tekrarlanabilir bulgu" ifadesi tercih edilmelidir.
+
+
+
+------------------------------------------------------------
+KAYNAK: outputs/tez_kisit_tartisma_oneri_genis_havuz.txt
+------------------------------------------------------------
+
+TEZ İÇİN GENİŞ KISIT-TARTIŞMA-ÖNERİ HAVUZU
+=========================================
+Bu dosya, 5. bölümde seçerek kullanılabilecek kapsamlı madde havuzudur.
+
+A) VERİ KISITLARI
+-----------------
+1) Zaman penceresi kısa (2022-2023); uzun dönem trend davranışı gözlenemiyor.
+2) 2024 için yalnızca kesinti verisi mevcut; tam out-of-time doğrulama yapılamıyor.
+3) Fiziksel şebeke envanteri (boru yaşı/çap/malzeme/basınç zonu) yok.
+4) Arıza tipi ve kök neden sınıfları eksik (korozyon, dış kazı, vana arızası vb.).
+5) Müdahale kayıtları eksik (hangi bölgede hangi bakım/yenileme yapıldı bilgisi yok).
+6) Veri giriş kalitesi kurum süreçlerine bağlı; eksik/yanlış kayıt riski bulunuyor.
+7) Çoklu mahalleli kesinti kayıtları ayrıştırılsa da ölçüm belirsizliği kalabiliyor.
+8) POI verisi OSM tabanlı olduğundan güncellik ve kapsama heterojen olabilir.
+9) Komşuluk verisinde temizleme sonrası kapsama kaybı yaşanmıştır.
+10) Nüfus verisi statik yaklaşımla kullanılmış; dönem içi değişimler yakalanmıyor.
+
+B) TEMSİL KISITLARI (İNSAN HAREKETLİLİĞİ VE SOSYAL DİNAMİKLER)
+---------------------------------------------------------------
+1) Gündüz-gece nüfus farkı modele doğrudan dahil değil.
+2) Turistik sezon etkisi (özellikle kıyı/merkez ilçeler) doğrudan ölçülmüyor.
+3) İşe gidiş-geliş (commuting) kaynaklı geçici nüfus yükleri temsil edilmiyor.
+4) Okul döneminde artan tüketim baskısı/kurumsal yoğunluk ayrı değişken olarak yok.
+5) Hafta içi-hafta sonu talep farkları modele ayrı eksen olarak yansıtılmıyor.
+
+C) METODOLOJİK KISITLAR
+-----------------------
+1) AHP ağırlıkları açıklanabilir olsa da uzman/yargı tabanlı varsayım içerir.
+2) Quantile sınıflandırma göreli ayrım yapar; mutlak risk eşiği vermez.
+3) Quantile, her dönemde sınıf oranlarını yapısal olarak böldüğü için dönemler arası mutlak karşılaştırmada dikkat gerektirir.
+4) Winsorization uç değer etkisini azaltırken bazı kritik anomali sinyallerini bastırabilir.
+5) Trend değişkeni iki yıla dayalı olduğu için uzun dönem davranışı tam temsil etmez.
+6) Dasimetrik dağıtım nüfus oranına dayanır; gerçek şebeke hidrolik yönlenmesini tam temsil etmeyebilir.
+
+D) DOĞRULAMA KISITLARI
+----------------------
+1) Çalışma tahmin modeli değil; bu nedenle klasik forecast metrikleri (MAE/RMSE) raporlanmamıştır.
+2) 2024 için tam set olmadığından partial validation yapılabilmiştir.
+3) Kısmi doğrulama sadece kesinti boyutunda olduğundan modelin tüm boyutlarını kapsamaz.
+4) Müdahale etkisi ayrıştırılmadıkça performans yorumu nedensel düzeyde sınırlıdır.
+5) İdari süreç değişimleri (personel, politika, bütçe) sonuçları etkileyebilir.
+
+E) UYGULAMA KISITLARI
+---------------------
+1) Kurum içi operasyon politikaları dönemsel değişebildiği için skorların güncel veriyle düzenli yenilenmesi gerekir.
+2) Harita eşleşmesinde left_only kayıtlar vardır; karar öncesi saha kontrolü önerilir.
+3) Yüksek riskli mahallelerde teknik ve sosyal öncelik çakışmaları yönetim kararı gerektirir.
+
+F) TARTIŞMA NOKTALARI
+---------------------
+1) Neden "arıza adedi" tek başına yeterli değil?
+2) Neden PoF + CoF birlikte değerlendirilmeli?
+3) Neden quantile sınıflandırma karar iletişimini kolaylaştırıyor?
+4) Neden K-Means final değil, Ar-Ge/karşılaştırma hattı?
+5) Neden mekânsal doğrulama (Moran) kritik?
+6) Neden veri kalite katmanı (canonical key, kapsama oranı, join kontrolü) karar güveni için zorunlu?
+
+G) UYGULAMA ÖNERİLERİ (KISA-ORTA-UZUN VADE)
+---------------------------------------------
+Kısa vade (0-6 ay):
+1) Kırmızı mahalleler için hedefli bakım paketi.
+2) Sarı mahallelerde izleme sıklığı artışı.
+3) Harita eşleşmesi düşük mahallelerde saha doğrulaması.
+
+Orta vade (6-18 ay):
+4) Müdahale loglarının standardizasyonu ve modelle entegrasyonu.
+5) İlçe bütçesinde kırmızı adet + kırmızı oran birlikte kullanımı.
+6) Aylık KDS toplantı standardı oluşturulması.
+
+Uzun vade (18+ ay):
+7) 3-5 yıllık seri ile out-of-time validasyon.
+8) Fiziksel envanter + operasyonel veri hibrit modeli.
+9) İnsan hareketliliği (turizm/iş/okul) değişkenlerinin entegrasyonu.
+10) Maliyet-etki optimizasyonu ile yatırım planı.
+
+H) 2024 İÇİN NE DENEBİLİR?
+---------------------------
+Doğru ifade:
+- "Model 2024'ü kesin tahmin etmiyor; 2024 kararlarını desteklemek için risk önceliği öneriyor."
+- "2024 kesinti verisi ile yapılan kısmi doğrulamada model rastgele seçime göre daha iyi ayrım gücü göstermiştir; ancak tam doğrulama için 2024 arıza/şikayet/tüketim/nüfus verileri gereklidir."
+
+Önerilen cümle (teze uygun):
+"Bu çalışma, ileriye dönük kesin tahmin üretmekten çok, sınırlı kaynak koşullarında müdahale önceliklerini şeffaf biçimde sıralayan bir karar destek yaklaşımı sunmaktadır. 2024 döneminde yalnızca kesinti verisiyle yapılabilen kısmi doğrulama, risk skorlarının olay yoğunluğuyla anlamlı ilişki taşıdığını göstermiş; ancak model performansının tam doğrulanması için çok-kaynaklı 2024 veri setlerinin tamamlanması gerektiğini ortaya koymuştur."
+
+
+
+------------------------------------------------------------
+KAYNAK: outputs/bolum_4_bulgular_tartisma.txt
+------------------------------------------------------------
+
+﻿4.1 Veri ve model yürütüm özeti
+Bu bölümde, 2022-2023 dönemine ait İSKİ arıza, şikayet ve kesinti kayıtları; nüfus verisi; mahalle düzeyinde POI göstergeleri
+ve komşuluk bilgisi birlikte değerlendirilmiştir. Nihai karar destek modeli olarak Senaryo 11 (AHP + Quantile + PoF/CoF risk matrisi)
+kullanılmıştır. Analiz birimi mahalle düzeyinde olup toplam 963 mahalle için sürekli risk skoru ve kategorik
+risk sınıfı üretilmiştir (Tablo 4.1).
+
+4.2 Genel bulgular (şehir geneli risk dağılımı)
+Şehir geneli sonuçlara göre kritik risk sınıfında 176 mahalle (%18.28),
+orta risk sınıfında 356 mahalle ve düşük risk sınıfında 431 mahalle yer almaktadır.
+Sürekli risk skorunun ortalaması 0.3073, medyanı ise 0.3251 olarak hesaplanmıştır.
+Risk sınıflarının dağılımı Şekil 4.1'de, PoF-Cof matris yoğunluğu ise Şekil 4.3'te sunulmaktadır.
+
+4.3 İlçe bazlı bulgular (adet + oran + ortalama risk)
+İlçe bazında ortalama sürekli risk değerleri ve kırmızı sınıf oranları birlikte incelendiğinde, önceliğin sadece mahalle adedine göre
+değil, risk yoğunluğuna göre verilmesi gerektiği görülmektedir (Tablo 4.2, Şekil 4.2). En yüksek ortalama sürekli riske sahip ilk üç ilçe:
+- ATAŞEHİR: ortalama sürekli risk=0.4227, kırmızı oran=58.82%
+- SULTANGAZİ: ortalama sürekli risk=0.4160, kırmızı oran=66.67%
+- BAŞAKŞEHİR: ortalama sürekli risk=0.4093, kırmızı oran=45.45%
+Bu bulgu, yatırım önceliği belirlenirken “yüksek riskin mekânsal yoğunlaştığı” ilçe kümelerinin ayrı bir program başlığı olarak ele
+alınması gerektiğini göstermektedir.
+
+4.4 Mahalle bazlı kritik kümeler (top liste)
+Uygulama kararına doğrudan girdi oluşturması amacıyla, metin içinde en yüksek sürekli risk skoruna sahip ilk 5 mahalle özetlenmiştir;
+geniş liste Tablo 4.3'te verilmiştir:
+- ATAŞEHİR / İÇERENKÖY: risk=0.5359, PoF=0.6443, CoF=0.8318
+- TUZLA / AYDINLI: risk=0.5168, PoF=0.5951, CoF=0.8684
+- KÜÇÜKÇEKMECE / HALKALI MERKEZ: risk=0.4968, PoF=0.6198, CoF=0.8015
+- ATAŞEHİR / KÜÇÜKBAKKALKÖY: risk=0.4929, PoF=0.6435, CoF=0.7660
+- SULTANGAZİ / ESENTEPE: risk=0.4844, PoF=0.6195, CoF=0.7819
+Bu mahallelerde kısa vadeli saha doğrulaması, boru hattı yenileme planı ve arıza tekrarı analizi eş zamanlı yürütülmelidir.
+
+4.5 Mekânsal ve istatistiksel doğrulama (Moran/AHP/kalite)
+Modelde kullanılan AHP ağırlıkları için tutarlılık oranları CR(PoF)=0.0003 ve CR(CoF)=0.0003 düzeyindedir.
+Her iki değer de kabul edilebilir sınırın altında olduğundan ağırlık seti tutarlıdır (Tablo 4.5). Moran's I için permutation tabanlı
+anlamlılık test sonuçları aşağıdadır:
+- ariza_2022: I=0.4682, p=0.0020, z=24.741 -> anlamlı
+- ariza_2023: I=0.4870, p=0.0020, z=25.320 -> anlamlı
+- risk_s11: I=0.6054, p=0.0020, z=29.347 -> anlamlı
+Sonuçlar, arıza değişkeninde pozitif ve istatistiksel olarak anlamlı mekânsal kümelenmeye işaret etmektedir.
+Mekânsal veri kalitesi ve kapsama denetimleri:
+- POI kapsam: %99.65 (önce=1422, sonra=1417)
+- Komşuluk kapsam: %92.71 (önce=5833, sonra=5408)
+- Dış kaynak temizliği: poi_dış_anahtar=5, komşuluk_dış_kaynak=179, komşuluk_dış_komşu=179
+- Harita join kapsam: both=953, left_only=52, right_only=0, eşleşme_oranı=94.83%
+Harita eşleşme kalitesi Tablo 4.6'da, mahalle risk haritası Şekil 4.5'te sunulmuştur.
+
+4.6 Karar destek yorumu (bütçe ve müdahale önceliği)
+PoF x CoF matrisinin (3,3) hücresinde yer alan 176 mahalle, teknik arıza olasılığı ve etki büyüklüğü birlikte yüksek olan
+kritik müdahale grubunu temsil etmektedir (Tablo 4.4). Bu grup için kısa vadede yenileme/rehabilitasyon bütçesi önceliklendirilmelidir.
+Orta risk grubunda koruyucu bakım ve yakından izleme yaklaşımı, düşük risk grubunda ise standart işletme periyotları yeterli olacaktır.
+Bu ayrım, sınırlı kaynakla en yüksek etkili müdahalenin planlanmasına olanak sağlamaktadır.
+
+4.7 Kısa tartışma (sınırlılıklar + 5. bölüme geçiş köprüsü)
+Elde edilen bulgular, veri bütünlüğü, isim eşleme doğruluğu ve mekânsal kapsam gibi operasyonel kalite değişkenlerine duyarlıdır.
+Bu nedenle model sonuçlarının belirli aralıklarla saha gözlemleriyle kalibre edilmesi önerilir. Ayrıca bu çalışma bir tahmin modeli
+değil, karar destek modelidir; amaç, yatırım ve bakım önceliklendirmesini şeffaf ve izlenebilir hale getirmektir.
+Bölüm 5'te, bu bulguların yönetsel etkileri, uygulama sınırlılıkları ve politika önerileri sonuç odaklı biçimde tartışılacaktır.
+
+Şekil ve tablo referansları (tez yerleşimi)
+Şekil 4.1: Şehir geneli risk dağılımı (outputs/figures/chapter4/risk_dagilimi.png)
+Şekil 4.2: İlçe bazında ortalama risk sıralaması (outputs/figures/chapter4/ilce_risk_siralamasi.png)
+Şekil 4.3: PoF x CoF ısı haritası (outputs/figures/chapter4/pof_cof_heatmap.png)
+Şekil 4.4: En riskli mahalleler (bar grafik) (outputs/figures/chapter4/en_riskli_mahalleler_bar.png)
+Şekil 4.5: Mahalle risk haritası (outputs/figures/chapter4/risk_haritasi.png)
+Tablo 4.1: Şehir geneli risk özeti (outputs/chapter4/sehir_geneli_risk_ozeti.csv)
+Tablo 4.2: İlçe risk özeti (outputs/chapter4/ilce_risk_ozeti.csv)
+Tablo 4.3: En riskli mahalleler listesi (outputs/chapter4/en_riskli_mahalleler_top_list.csv)
+Tablo 4.4: PoF x CoF çapraz tablo (outputs/chapter4/pof_cof_capraz_tablo.csv)
+Tablo 4.5: Teknik doğrulama özeti (outputs/chapter4/teknik_dogrulama_ozeti.csv)
+Tablo 4.6: Harita join kalite özeti (outputs/chapter4/harita_join_kalite_ozeti.csv)
+
+
+
+------------------------------------------------------------
+KAYNAK: outputs/bolum_5_sonuc_tartisma_kisitlar_oneriler.txt
+------------------------------------------------------------
+
+5. SONUÇ, TARTIŞMA, KISITLAR VE ÖNERİLER
+
+5.1. Araştırmanın Temel Sonuçları
+Bu çalışma, fiziksel boru envanteri sınırlı bir ortamda operasyonel verilerle mahalle ölçeğinde uygulanabilir bir risk önceliklendirme modeli kurulabileceğini göstermiştir. 2022-2023 dönemine ait arıza, şikayet, kesinti, nüfus, POI ve komşuluk verileri tek bir karar matrisi altında birleştirilmiş; AHP tabanlı ağırlıklandırma ile PoF-CoF eksenlerinde skorlar üretilmiş; quantile (tercil) sınıflandırma ile eyleme dönüştürülebilir risk grupları elde edilmiştir.
+
+Güncel sonuçlara göre 963 mahallenin 176 adedi kritik, 356 adedi orta, 431 adedi düşük risk grubundadır. Sürekli risk skorunun ortalaması 0.3073, medyanı 0.3251 olarak hesaplanmıştır. Bu dağılım, müdahale kapasitesi sınırlı kurumlarda kademeli önceliklendirme yapılabileceğini göstermektedir.
+
+5.2. Bulguların Yönetsel Yorumu ve Tartışma
+Bulgular, bakım ve yenileme planlarının yalnızca arıza adedine dayalı yürütülmesinin yetersiz kalabileceğini ortaya koymaktadır. PoF ve CoF bileşenlerinin birlikte değerlendirilmesi, teknik kırılganlık ile sosyal/operasyonel etkiyi aynı karar çerçevesinde birleştirerek kaynak tahsisini daha dengeli hale getirmektedir.
+
+İlçe bazlı değerlendirme, "yüksek ortalama risk" ile "yüksek kırmızı mahalle adedi" göstergelerinin her zaman aynı ilçelerde toplanmadığını göstermektedir. Bu nedenle bütçe planlamasında iki katmanlı yaklaşım önerilir:
+- Yoğunluk odaklı katman: ortalama sürekli riski yüksek ilçeler.
+- Hacim odaklı katman: kırmızı mahalle adedi yüksek ilçeler.
+
+Bu ayrım, hem teknik ekip planlamasını hem de yatırım programını daha gerçekçi hale getirir.
+
+5.3. Yöntemsel Doğrulama ve Güvenilirlik
+Modelin ağırlıklandırma adımı AHP tutarlılık oranı ile denetlenmiştir (PoF CR=0.0003; CoF CR=0.0003). Mekânsal yapı hem arıza hem de nihai risk düzeyinde Moran's I ile sınanmış ve anlamlı pozitif kümelenme gözlenmiştir (arıza 2022: I=0.4682, p=0.002; arıza 2023: I=0.4870, p=0.002; nihai risk: I=0.6054, p=0.002).
+
+Ayrıca yıl-duyarlı spatial lag kurgusu ve kalite kontrolleri ile veri sızıntısı (leakage) riski azaltılmıştır. Bu doğrulamalar, modelin "açıklanabilir karar desteği" olarak güvenilirliğini güçlendirmektedir.
+
+5.4. Çalışmanın Kısıtları
+Bu araştırmanın en önemli kısıtları aşağıdadır:
+- Zaman penceresi 2022-2023 ile sınırlıdır; daha uzun dönem davranışı gözlenmemiştir.
+- Çalışma bir tahmin modeli değildir; önceliklendirme modelidir. Bu nedenle 2024 için doğrudan tahmin başarısı iddiası üretmez.
+- 2024 döneminde projede bulunan tek ham kaynak kesinti verisidir (`Su-kesintileri-2023-2024.csv`); arıza, şikayet, tüketim ve nüfusun 2024 karşılıkları mevcut değildir.
+- Boru yaşı, çap, malzeme, basınç zonu, arıza tipi gibi fiziksel şebeke parametreleri modele doğrudan dahil edilememiştir.
+- İnsan sirkülasyonu etkisi sınırlı temsil edilmiştir: gündüz-gece nüfus farkı, turistik yoğunluk, işe gidiş-geliş akımları, okul saatlerinde artan tüketim baskısı gibi dinamikler mevcut veri setlerinde doğrudan bulunmamaktadır.
+- Ağır vasıta trafiği, yol kazıları, inşaat yoğunluğu gibi altyapı stresi artıran dış etkenler doğrudan ölçülmemiştir.
+- POI ve komşuluk verilerinde temizleme sonrası kapsama kayıpları vardır; bazı mahallelerde bu durum duyarlılığı etkileyebilir.
+
+5.5. 2024 ve Sonrası İçin Uygulama Önerileri
+Modelin kurumsal kullanımında aşağıdaki uygulama sırası önerilmektedir:
+- Kırmızı grupta yer alan mahalleler için 6-12 aylık hedefli yenileme/rehabilitasyon paketi hazırlanmalıdır.
+- Sarı grupta önleyici bakım, aktif izleme ve saha denetim sıklığı artırılmalıdır.
+- Yeşil grupta standart bakım döngüsü korunmalı; eşik üstüne çıkan mahalleler erken uyarı listesine alınmalıdır.
+- İlçe bazlı kaynak dağıtımında "kırmızı adet" ve "kırmızı oran" birlikte kullanılmalıdır.
+- KDS çıktıları, aylık operasyon toplantılarında standart karar girdisi haline getirilmelidir.
+
+Yöneticiye verilmesi gereken doğru mesaj şudur: "Bu model 2024'ü kesin tahmin eden bir sistem değil; eldeki verilerle en rasyonel müdahale önceliğini üreten bir karar destek aracıdır."
+
+5.6. 2024 Doğrulama Tasarımı (Zorunlu Sonraki Adım)
+Modelin ileriye dönük performansını ölçmek için 2024 out-of-time doğrulama planı önerilir:
+- Gerekli veri: 2024 mahalle bazlı arıza, şikayet, kesinti, tüketim ve güncel nüfus verisi.
+- Ek kritik veri: 2024'te hangi mahallede hangi bakım/yenileme müdahalesi yapıldığına dair müdahale logu.
+- Değerlendirme metrikleri:
+  - Precision@K ve Lift@K (yüksek riskli mahalle yakalama gücü)
+  - Spearman sıra korelasyonu (risk sırası vs gerçekleşen olay yoğunluğu)
+  - Risk dilimleri arasında olay oranı monotonluğu
+  - Müdahale etkisi ayrıştırması (müdahale edilen/edilmeyen mahalle farkı)
+
+Bu tasarım uygulanmadan, modelin 2024 tahmin başarısı hakkında güçlü nedensel iddialar kurulmamalıdır.
+
+Bu çalışmada erişilebilen tek 2024 kaynağı (kesinti verisi) ile kısmi bir out-of-time kontrol yapılmıştır. Kısmi doğrulama sonuçları, risk skorunun 2024 kesinti olay adedi ile orta düzeyde pozitif ve anlamlı ilişki verdiğini göstermiştir (Spearman rho=0.3977, p<0.001). Top %20 riskli mahalleler, 2024'te en yüksek kesinti olay yoğunluğuna sahip mahalleleri rastgele seçime kıyasla 1.65 kat daha iyi yakalamıştır (precision@20=0.5492, lift@20=1.6528). Ancak bu bulgu tek başına tam model doğrulaması olarak yorumlanmamalı; arıza, şikayet, tüketim ve nüfus 2024 setleriyle tamamlanmalıdır.
+
+5.7. Gelecek Çalışmalar
+Gelecek çalışmalar için önerilen genişletmeler:
+- 3-5 yıllık zaman serisiyle kararlılık ve genellenebilirlik testi.
+- Fiziksel şebeke envanteri ile hibrit model (operasyonel + fiziksel) kurulumu.
+- İnsan hareketliliği göstergelerinin entegrasyonu (gündüz/gece nüfus, turizm, eğitim/iş odakları).
+- Maliyet-etki optimizasyonu (hangi müdahale, hangi bütçede en yüksek risk düşüşü sağlar).
+- Tahmin hedefi kurulacaksa ayrı bir supervised pipeline ve out-of-time test tasarımı.
+
+5.8. Kapanış Değerlendirmesi
+Sonuç olarak bu tez, İSKİ özelinde sınırlı fakat erişilebilir operasyonel verilerle şeffaf, izlenebilir ve uygulanabilir bir karar destek mimarisi üretmiştir. Yöntemin güçlü tarafı, matematiksel tutarlılık (AHP), mekânsal doğrulama (Moran) ve operasyonel uygulanabilirliği aynı çatı altında toplamasıdır. Bu çerçeve, benzer veri kısıtlarına sahip diğer yerel su idarelerine de uyarlanabilir bir referans model sunmaktadır.
+
+
+
+------------------------------------------------------------
+KAYNAK: outputs/validation_2024_partial/validation_2024_partial_summary.txt
+------------------------------------------------------------
+
+2024 KISMI DOĞRULAMA RAPORU (Sadece Kesinti Verisi)
+===================================================
+
+Not: Bu rapor tam doğrulama değildir. 2024 için yalnızca kesinti seti bulunduğundan
+risk modelinin sadece kesinti boyutuna dönük out-of-time kontrolü yapılmıştır.
+
+- Nihai riskte mahalle sayısı: 963
+- 2024 kesinti görülen mahalle sayısı: 570
+
+- Spearman Korelasyonları
+  * risk_vs_kesinti_olay_2024: rho=0.3977, p=0.000000
+  * risk_vs_kesinti_saat_2024: rho=0.3393, p=0.000000
+
+- Top %20 Yakalama Performansı
+  * Olay adedi için: precision@20=0.5492, lift@20=1.6528 (hit=106, k=193)
+  * Kesinti saati için: precision@20=0.2798, lift@20=1.3540 (hit=54, k=193)
+
+Yorum:
+- Sonuçlar, risk sıralamasının 2024 kesinti yoğunluğu ile kısmi düzeyde hizalı olup olmadığını gösterir.
+- Ancak arıza/şikayet/tüketim/nüfus 2024 setleri olmadan tam model doğrulaması yapılamaz.
+
+
+------------------------------------------------------------
+KAYNAK: outputs/figures/chapter4/sekil_3_1_kullanim_notu.txt
+------------------------------------------------------------
+
+SEKIL 3.1 KULLANIM NOTU
+---------------------
+Onerilen baslik:
+Sekil 3.1. Arastirma Is Akisi (Kompakt Surum)
+
+Dosyalar:
+- sekil_3_1_arastirma_is_akisi_compact.png (Word icin)
+- sekil_3_1_arastirma_is_akisi_compact.svg (vektor surum)
+- sekil_3_1_arastirma_is_akisi_mermaid.txt (duzenlenebilir kaynak)
+
+Word yerlestirme onerisi (tez uyumu):
+- Gorsel sayfada ortali yerlestirilsin.
+- Gorsel basligi (Sekil 3.1 ...) sekil ALTINA yazilsin.
+- Baslik metni 10 punto, normal (kalin degil) kullanilsin.
+- Sekil ile baslik arasinda tek satirlik bosluk birakilsin.
+- Metin ile sekil arasinda tutarli paragraf araligi korunsun.
+
+Not:
+- Semadaki akis kod-gercekligi ile uyumludur:
+  Veri alimi -> temizlik -> dasimetrik dagitim -> feature engineering ->
+  AHP+PoF/CoF -> quantile siniflandirma -> Moran dogrulama -> KDS ciktilari.
+
+
+
+------------------------------------------------------------
+KAYNAK: outputs/figures/chapter4/sekil_3_1_arastirma_is_akisi_mermaid.txt
+------------------------------------------------------------
+
+flowchart LR
+    A["Veri Alimi (2022-2023)"] --> B["Temizlik ve Standartlastirma"]
+    B --> C["Dasimetrik Dagitim"]
+    C --> D["Feature Engineering"]
+    D --> E["AHP ile PoF/CoF Skoru"]
+    E --> F["Quantile ile Risk Sinifi"]
+    F --> G["Mekansal Dogrulama (Moran)"]
+    G --> H["KDS Ciktilari (Tablo + Harita)"]
+
+

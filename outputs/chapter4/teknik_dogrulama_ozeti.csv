@@ -1,0 +1,26 @@
+﻿kategori,metrik,deger
+ahp,PoF_CR,0.0003
+ahp,CoF_CR,0.0003
+model,nihai_yontem,AHP + Quantile + PoF/CoF Matrisi (Senaryo 11)
+model,mahalle_sayisi,963
+model,anahtar_duplikasyon_sayisi,0
+veri_kalite,karar_matrisi_anahtar_yil_duplikasyon,0
+morans_i,ariza_2022_I,0.4682
+morans_i,ariza_2022_p_value,0.002
+morans_i,ariza_2022_z_score,24.7414
+morans_i,ariza_2023_I,0.487
+morans_i,ariza_2023_p_value,0.002
+morans_i,ariza_2023_z_score,25.3195
+morans_i,risk_s11_I,0.6054
+morans_i,risk_s11_p_value,0.002
+morans_i,risk_s11_z_score,29.3467
+spatial_kalite,valid_key_count,963.0
+spatial_kalite,poi_rows_before,1422.0
+spatial_kalite,poi_rows_after,1417.0
+spatial_kalite,poi_rows_outside_keys,5.0
+spatial_kalite,poi_coverage_pct,99.65
+spatial_kalite,komsuluk_rows_before,5833.0
+spatial_kalite,komsuluk_rows_after,5408.0
+spatial_kalite,komsuluk_outside_source,179.0
+spatial_kalite,komsuluk_outside_neighbor,179.0
+spatial_kalite,komsuluk_coverage_pct,92.71

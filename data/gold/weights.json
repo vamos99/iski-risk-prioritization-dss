@@ -1,0 +1,32 @@
+{
+    "shannon_A": {
+        "ariza_sayisi": 0.032998143010888305,
+        "ariza_trend": 0.008414406578694267,
+        "ariza_yogunlugu": 0.30061148690483347,
+        "egitim_tesisi_sayisi": 0.08325748877525652,
+        "kesinti_suresi_saat": 0.05326973780817212,
+        "komsu_ort_ariza": 0.020090596917179564,
+        "komsu_sayisi": 0.007599956670729411,
+        "nufus": 0.05179264889568128,
+        "nufus_basi_tuketim": 0.00997744622837973,
+        "ort_kesinti_suresi": 0.06091940410454438,
+        "sanayi_tesis_sayisi": 0.29717215616624426,
+        "sikayet_ariza_orani": 0.0309599148185913,
+        "sikayet_sayisi": 0.042936613120805184
+    },
+    "critic_B": {
+        "ariza_sayisi": 0.06324138395883715,
+        "ariza_trend": 0.04281460769301175,
+        "ariza_yogunlugu": 0.059442857324850516,
+        "egitim_tesisi_sayisi": 0.09430306558438929,
+        "kesinti_suresi_saat": 0.11197864679815846,
+        "komsu_ort_ariza": 0.07347434736774192,
+        "komsu_sayisi": 0.07056257242929992,
+        "nufus": 0.06886986826580217,
+        "nufus_basi_tuketim": 0.09408255820100461,
+        "ort_kesinti_suresi": 0.08578903012053218,
+        "sanayi_tesis_sayisi": 0.07906425638211964,
+        "sikayet_ariza_orani": 0.06767174943713951,
+        "sikayet_sayisi": 0.08870505643711295
+    }
+}

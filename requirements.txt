@@ -1,0 +1,25 @@
+# İSKİ Risk Önceliklendirme — Python Bağımlılıkları
+# =================================================
+
+# Veri işleme
+pandas>=2.0.0
+numpy>=1.24.0
+
+# ML / Kümeleme
+scikit-learn>=1.3.0
+
+# Mekânsal analiz (opsiyonel — spatial lag ve GeoJSON için)
+geopandas>=0.13.0
+libpysal>=4.7.0
+
+# Görselleştirme
+matplotlib>=3.7.0
+folium
+streamlit-folium
+
+# Dashboard
+streamlit>=1.25.0
+
+# Linting / kalite (geliştirme)
+# ruff
+# mypy

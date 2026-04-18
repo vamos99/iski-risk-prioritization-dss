@@ -1,0 +1,2 @@
+﻿metric_key,morans_i,expected_i,p_value,z_score,n,w,permutations
+risk_s11,0.6054,-0.001,0.002,29.3467,963,5556,499
