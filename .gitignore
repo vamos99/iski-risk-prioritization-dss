@@ -34,6 +34,7 @@ htmlcov/
 # Local temporary and logs
 tmp/
 *.log
+*.db
 
 # Local archive (do not publish legacy assets)
 archive/

@@ -6,7 +6,14 @@ risk önceliklendirmesi üreten karar destek hattıdır.
 ## Bu Repo Ne Yapar?
 - Su şebekesi bakım/yenileme önceliği için mahalle bazında risk skoru üretir.
 - Nihai yaklaşım tahmin modeli değil, **karar destek önceliklendirme modeli**dir.
-- Çıktılar tablo + görsel + teknik doğrulama özetleri olarak üretilir.
+- Çıktılar yönetici özeti, harita, tablo, SQL view ve teknik doğrulama özetleri olarak üretilir.
+
+## Portfolio Odağı
+- Medallion yapısına yakın veri akışı: `bronze -> silver -> gold -> outputs`
+- Mahalle/ilçe kırılımında açıklanabilir risk skorlama
+- Streamlit üzerinde teknik olmayan okuyucuya uygun yönetici özeti
+- SQLite + SQL view katmanı ile sorgulanabilir analitik çıktı
+- Hafif CI ile Python compile, unit test ve SQLite build kontrolü
 
 ## Nihai Metodoloji (Source of Truth)
 - Nihai model: `pipeline/05_advanced_scenarios.py` (Senaryo 11)
@@ -19,6 +26,8 @@ risk önceliklendirmesi üreten karar destek hattıdır.
 - `python3 -m pipeline.03_04_score_cluster`
 - `python3 -m pipeline.05_advanced_scenarios`
 - `python3 scripts/reporting/generate_chapter4_assets.py`
+- `python3 scripts/build_analytics_sqlite.py`
+- `streamlit run app/main.py`
 
 ## Hızlı Başlangıç
 1. `python3 -m pip install -r requirements.txt`
@@ -26,6 +35,8 @@ risk önceliklendirmesi üreten karar destek hattıdır.
 3. `python3 -m pipeline.01_normalize_weight`
 4. `python3 -m pipeline.05_advanced_scenarios`
 5. `python3 scripts/reporting/generate_chapter4_assets.py`
+6. `python3 scripts/build_analytics_sqlite.py`
+7. `streamlit run app/main.py`
 
 Detaylı, adım adım operasyon ve çıktı kontrolü için `RUNBOOK.md` dosyasına bakın.
 
@@ -36,6 +47,7 @@ Detaylı, adım adım operasyon ve çıktı kontrolü için `RUNBOOK.md` dosyas�
 - `data/silver/`: Adım 0/1 ara çıktıları
 - `data/gold/`: Nihai model ve doğrulama çıktıları
 - `outputs/`: Bölüm 4 tablo/görselleri ve tek not dosyası (`tek_dosya_degisim_notlari.txt`)
+- `sql/`: SQLite view tanımları ve analitik sorgu örnekleri
 
 Not: Proje kökünde ham CSV tutulmaz; veri dosyaları yalnızca `data/` altında tutulur.
 
