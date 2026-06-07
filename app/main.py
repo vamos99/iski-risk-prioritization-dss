@@ -5,20 +5,38 @@ Nihai Model: Senaryo 11 (PoF / CoF 2D Risk Matrisi)
 Arşiv: Elenen 10 senaryo ve nedenleri
 """
 
+from __future__ import annotations
+
 import streamlit as st
 import pandas as pd
-import geopandas as gpd
-import folium
-from streamlit_folium import st_folium
 import os
 import sys
 from pathlib import Path
+
+try:
+    import geopandas as gpd
+except ImportError:
+    gpd = None
+
+try:
+    import folium
+    from streamlit_folium import st_folium
+except ImportError:
+    folium = None
+    st_folium = None
 
 # Proje kök dizinini ekle
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
 from config.settings import SPATIAL_FILES, GOLD_DIR
+from src.analysis.executive_summary import (
+    build_city_risk_summary,
+    build_data_quality_summary,
+    build_district_risk_summary,
+    build_risk_distribution,
+    build_top_priority_neighborhoods,
+)
 from src.utils.naming import (
     standardize_district_name,
     standardize_neighborhood_name,
@@ -39,11 +57,11 @@ def load_data():
     gdf_districts = None
     gdf_neighborhoods = None
 
-    if os.path.exists(SPATIAL_FILES["districts_geojson"]):
+    if gpd is not None and os.path.exists(SPATIAL_FILES["districts_geojson"]):
         gdf_districts = gpd.read_file(SPATIAL_FILES["districts_geojson"])
         gdf_districts["ilce"] = gdf_districts["ilce"].apply(standardize_district_name)
 
-    if os.path.exists(SPATIAL_FILES["neighborhoods_geojson"]):
+    if gpd is not None and os.path.exists(SPATIAL_FILES["neighborhoods_geojson"]):
         gdf_neighborhoods = gpd.read_file(SPATIAL_FILES["neighborhoods_geojson"])
         gdf_neighborhoods["ilce"] = gdf_neighborhoods["ilce"].apply(standardize_district_name)
         gdf_neighborhoods["mahalle"] = gdf_neighborhoods["mahalle"].apply(standardize_neighborhood_name)
@@ -117,6 +135,18 @@ def risk_turkish(risk_label: str) -> str:
     elif "Yeşil" in risk_label:
         return "NORMAL - Düşük Risk"
     return risk_label
+
+
+def format_ratio(value: float) -> str:
+    if pd.isna(value):
+        return "—"
+    return f"%{value * 100:.1f}"
+
+
+def format_score(value: float) -> str:
+    if pd.isna(value):
+        return "—"
+    return f"{value:.3f}"
 
 
 def build_canonical_key(df: pd.DataFrame, district_col: str, neighborhood_col: str) -> pd.Series:
@@ -206,7 +236,8 @@ st.sidebar.caption("Su Şebekesi Risk Önceliklendirme Sistemi")
 st.sidebar.markdown("---")
 
 # TAB SİSTEMİ
-tab1, tab2, tab3 = st.tabs([
+tab_summary, tab_map, tab_ranking, tab_archive = st.tabs([
+    "📊 Yönetici Özeti",
     "🗺️ Risk Haritası",
     "📋 Öncelik Sıralaması",
     "📂 Arşiv (Elenen Yöntemler)",
@@ -214,9 +245,103 @@ tab1, tab2, tab3 = st.tabs([
 
 
 # ==========================================
-# SEKME 1: RİSK HARİTASI
+# SEKME 1: YÖNETİCİ ÖZETİ
 # ==========================================
-with tab1:
+with tab_summary:
+    st.title("📊 İstanbul Su Şebekesi Risk Öncelikleri")
+
+    if not df_advanced.empty:
+        city_summary = build_city_risk_summary(df_advanced)
+        risk_distribution = build_risk_distribution(df_advanced)
+        district_summary = build_district_risk_summary(df_advanced)
+        top_neighborhoods = build_top_priority_neighborhoods(df_advanced, limit=10)
+        quality_summary = build_data_quality_summary(df_advanced)
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Toplam Mahalle", f"{city_summary.total_neighborhoods:,}".replace(",", "."))
+        c2.metric("Kritik Risk", f"{city_summary.critical_count} mahalle", format_ratio(city_summary.critical_ratio))
+        c3.metric("Orta Risk", f"{city_summary.medium_count} mahalle")
+        c4.metric("Düşük Risk", f"{city_summary.low_count} mahalle")
+
+        c5, c6, c7 = st.columns(3)
+        c5.metric("Ortalama Risk Skoru", format_score(city_summary.average_risk_score))
+        c6.metric("Ortalama PoF", format_score(city_summary.average_pof_score))
+        c7.metric("Ortalama CoF", format_score(city_summary.average_cof_score))
+
+        st.info(
+            "Bu ekran tahmin modeli değil; bakım, yenileme ve saha kontrolü için mahalle bazlı "
+            "önceliklendirme çıktısıdır."
+        )
+
+        chart_col, table_col = st.columns([1, 1.35])
+        with chart_col:
+            st.subheader("Risk Dağılımı")
+            if not risk_distribution.empty:
+                st.bar_chart(risk_distribution.set_index("Risk Seviyesi"))
+
+            st.subheader("En Yoğun Kritik İlçeler")
+            district_chart = district_summary.head(10)[["ilce", "kritik_adet", "orta_adet"]].copy()
+            district_chart = district_chart.rename(
+                columns={"ilce": "İlçe", "kritik_adet": "Kritik", "orta_adet": "Orta"}
+            )
+            st.bar_chart(district_chart.set_index("İlçe"))
+
+        with table_col:
+            st.subheader("İlçe Öncelik Özeti")
+            district_display = district_summary.head(12).copy()
+            district_display["Kritik Oran"] = district_display["kritik_oran"].map(format_ratio)
+            district_display["Ortalama Risk"] = district_display["ortalama_risk"].map(format_score)
+            district_display = district_display.rename(
+                columns={
+                    "ilce": "İlçe",
+                    "mahalle_sayisi": "Mahalle",
+                    "kritik_adet": "Kritik",
+                    "orta_adet": "Orta",
+                    "dusuk_adet": "Düşük",
+                }
+            )
+            st.dataframe(
+                district_display[["İlçe", "Mahalle", "Kritik", "Orta", "Düşük", "Kritik Oran", "Ortalama Risk"]],
+                use_container_width=True,
+                height=360,
+            )
+
+        st.subheader("İlk Kontrol Listesi")
+        top_display = top_neighborhoods.copy()
+        top_display["Risk Puanı"] = top_display["S11_Risk_Skoru_Surekli"].map(format_score)
+        top_display["PoF"] = top_display["S11_PoF_Skor"].map(format_score)
+        top_display["CoF"] = top_display["S11_CoF_Skor"].map(format_score)
+        top_display = top_display.rename(
+            columns={
+                "ilce": "İlçe",
+                "mahalle": "Mahalle",
+                "S11_Risk_Seviyesi": "Risk Durumu",
+                "oncelik_nedeni": "Öncelik Nedeni",
+            }
+        )
+        st.dataframe(
+            top_display[["İlçe", "Mahalle", "Risk Durumu", "Risk Puanı", "PoF", "CoF", "Öncelik Nedeni"]],
+            use_container_width=True,
+            height=390,
+        )
+
+        with st.expander("Veri kapsamı ve kontrol noktaları"):
+            st.write(
+                {
+                    "kayıt_sayısı": quality_summary["record_count"],
+                    "ilçe_sayısı": quality_summary["district_count"],
+                    "tekrar_anahtar": quality_summary["duplicate_key_count"],
+                    "eksik_anahtar": quality_summary["missing_key_count"],
+                }
+            )
+    else:
+        st.error("Veri dosyaları bulunamadı. Lütfen pipeline'ı çalıştırın.")
+
+
+# ==========================================
+# SEKME 2: RİSK HARİTASI
+# ==========================================
+with tab_map:
     st.title("📍 İstanbul Su Şebekesi Risk Haritası")
 
     # Metodoloji açıklaması (teknik olmayan kişiler için)
@@ -239,7 +364,12 @@ with tab1:
     secilen_ilce = st.selectbox("📌 İlçeye odaklan:", ["Tüm İstanbul"] + ilceler,
                                  help="Belirli bir ilçeyi seçerek haritayı yakınlaştırabilirsiniz.")
 
-    if not df_advanced.empty and gdf_neighborhoods is not None:
+    if gpd is None or folium is None or st_folium is None:
+        st.warning(
+            "Harita sekmesi için `geopandas`, `folium` ve `streamlit-folium` gerekir. "
+            "Yönetici özeti ve öncelik tabloları bu bağımlılıklar olmadan kullanılabilir."
+        )
+    elif not df_advanced.empty and gdf_neighborhoods is not None:
         prepared_geo, prepared_model, join_report = prepare_map_join_inputs(gdf_neighborhoods, df_advanced)
 
         merged_gdf = prepared_geo.merge(
@@ -315,9 +445,9 @@ with tab1:
 
 
 # ==========================================
-# SEKME 2: ÖNCELİK SIRALAMASI (RANKED LIST)
+# SEKME 3: ÖNCELİK SIRALAMASI (RANKED LIST)
 # ==========================================
-with tab2:
+with tab_ranking:
     st.title("📋 Mahalle Öncelik Sıralaması")
     st.markdown("Mahallelerin risk seviyesine göre en acilden en güvenliye sıralanmış listesidir.")
 
@@ -377,9 +507,9 @@ with tab2:
 
 
 # ==========================================
-# SEKME 3: ARŞİV (ELENEN YÖNTEMLER)
+# SEKME 4: ARŞİV (ELENEN YÖNTEMLER)
 # ==========================================
-with tab3:
+with tab_archive:
     st.title("📂 Arşiv: Test Edilip Elenen Matematiksel Yöntemler")
     st.markdown("""
     Proje boyunca **10 farklı matematiksel yaklaşım** test edilmiş ve aşağıdaki nedenlerle

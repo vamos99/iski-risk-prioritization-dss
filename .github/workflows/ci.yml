@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install check dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pandas pytest
+
+      - name: Compile Python files
+        run: python -m compileall -q app config pipeline scripts src tests
+
+      - name: Run unit tests
+        run: pytest -q
+
+      - name: Build SQLite analytics layer
+        run: python scripts/build_analytics_sqlite.py --output /tmp/iski_analytics.db

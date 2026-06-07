@@ -19,12 +19,16 @@ ve üretim sonrası kontrol maddeleri burada tutulur.
 3. `python3 -m pipeline.03_04_score_cluster`  (Ar-Ge)
 4. `python3 -m pipeline.05_advanced_scenarios` (Nihai)
 5. `python3 scripts/reporting/generate_chapter4_assets.py`
+6. `python3 scripts/build_analytics_sqlite.py`
+7. `streamlit run app/main.py`
 
 ## 2.1 Beklenen Durum Kontrolleri
 - Adım 0 sonunda: `data/silver/karar_matrisi.csv` üretilmiş olmalı.
 - Adım 5 sonunda: `data/gold/ileri_duzey_senaryolar_mahalle_bazli.csv` üretilmiş olmalı.
 - Moran birleşik çıktı: `data/gold/morans_i_all_results.csv` içinde `ariza_2022`, `ariza_2023`, `risk_s11` satırları bulunmalı.
 - Chapter4 scripti sonunda tablo dosyaları `outputs/chapter4/` altında güncel zaman damgasıyla bulunmalı.
+- SQLite build sonunda `outputs/iski_analytics.db` lokal olarak oluşmalı.
+- `risk_priority_neighborhoods`, `district_risk_summary`, `city_risk_summary` view'ları sorgulanabilir olmalı.
 
 ## 3) Kritik Çıktılar
 - `data/silver/karar_matrisi.csv`
@@ -35,6 +39,18 @@ ve üretim sonrası kontrol maddeleri burada tutulur.
 - `outputs/tek_dosya_degisim_notlari.txt`
 - `outputs/chapter4/*.csv` ve `outputs/figures/chapter4/*.png`
   (Not: `geopandas` yoksa `risk_haritasi.png` ve `harita_join_kalite_ozeti.csv` üretilmez.)
+- `outputs/iski_analytics.db` (lokal analitik DB; repoya commit edilmez)
+
+## 3.1 SQL Kontrol Sorgusu
+
+```bash
+sqlite3 outputs/iski_analytics.db \
+  "SELECT district, neighborhood, risk_score, priority_reason
+   FROM risk_priority_neighborhoods
+   WHERE priority_band = '01_critical'
+   ORDER BY risk_score DESC
+   LIMIT 10;"
+```
 
 ## 4) Yorumlama Notları
 - Nihai sınıflandırma K-Means değildir.
