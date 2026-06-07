@@ -15,7 +15,7 @@ risk önceliklendirmesi üreten karar destek hattıdır.
 - SQLite + SQL view katmanı ile sorgulanabilir analitik çıktı
 - Hafif CI ile Python compile, unit test ve SQLite build kontrolü
 - Mimari ve veri akışı özeti: `docs/architecture.md`
-- GitHub Issues/Projects için hafif sprint ve backlog akışı: `docs/project-management.md`
+- GitHub Issues/Projects için hafif sprint ve backlog akışı: [Live Project Board](https://github.com/users/vamos99/projects/2) / `docs/project-management.md`
 
 ## Nihai Metodoloji (Source of Truth)
 - Nihai model: `pipeline/05_advanced_scenarios.py` (Senaryo 11)

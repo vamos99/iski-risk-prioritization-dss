@@ -2,6 +2,10 @@
 
 This document keeps the decision-support project manageable in GitHub Issues and GitHub Projects without turning it into a heavy process.
 
+## Live Board
+
+- GitHub Project: https://github.com/users/vamos99/projects/2
+
 ## Workflow
 
 Use a GitHub Projects board with these fields:
