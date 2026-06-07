@@ -14,6 +14,7 @@ risk önceliklendirmesi üreten karar destek hattıdır.
 - Streamlit üzerinde teknik olmayan okuyucuya uygun yönetici özeti
 - SQLite + SQL view katmanı ile sorgulanabilir analitik çıktı
 - Hafif CI ile Python compile, unit test ve SQLite build kontrolü
+- Mimari ve veri akışı özeti: `docs/architecture.md`
 - GitHub Issues/Projects için hafif sprint ve backlog akışı: `docs/project-management.md`
 
 ## Nihai Metodoloji (Source of Truth)
