@@ -1,0 +1,42 @@
+name: Task
+description: Planned project work item
+title: "[Task]: "
+labels: ["type: task"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What should be true when this task is done?
+      placeholder: "Example: District risk drill-down is visible and documented."
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What is included and excluded?
+      placeholder: "Included: Streamlit table and SQL view. Excluded: new risk model."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: List the checks that prove the task is complete.
+      placeholder: "- Output reconciles with gold CSV\n- SQLite build passes\n- README or runbook updated when needed"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - analytics
+        - dashboard
+        - data-pipeline
+        - spatial
+        - docs
+        - ci
+    validations:
+      required: true
