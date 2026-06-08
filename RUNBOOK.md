@@ -20,6 +20,8 @@ ve üretim sonrası kontrol maddeleri burada tutulur.
 4. `python3 -m pipeline.05_advanced_scenarios` (Nihai)
 5. `python3 scripts/reporting/generate_chapter4_assets.py`
 6. `python3 scripts/build_analytics_sqlite.py`
+7. `python3 scripts/validate_pipeline_outputs.py --summary-output outputs/pipeline_run_summary.json --report-output outputs/pipeline_run_summary.md`
+8. `python3 scripts/reconcile_analytics_sqlite.py --database outputs/iski_analytics.db`
 7. `streamlit run app/main.py`
 
 ## 2.1 Beklenen Durum Kontrolleri
@@ -29,6 +31,8 @@ ve üretim sonrası kontrol maddeleri burada tutulur.
 - Chapter4 scripti sonunda tablo dosyaları `outputs/chapter4/` altında güncel zaman damgasıyla bulunmalı.
 - SQLite build sonunda `outputs/iski_analytics.db` lokal olarak oluşmalı.
 - `risk_priority_neighborhoods`, `district_risk_summary`, `city_risk_summary` view'ları sorgulanabilir olmalı.
+- Pipeline summary `pass` dönmeli ve row-count/check detaylarını yazmalı.
+- SQLite reconciliation `pass` dönmeli.
 
 ## 3) Kritik Çıktılar
 - `data/silver/karar_matrisi.csv`

@@ -36,3 +36,12 @@ jobs:
 
       - name: Build SQLite analytics layer
         run: python scripts/build_analytics_sqlite.py --output /tmp/iski_analytics.db
+
+      - name: Validate pipeline outputs
+        run: >
+          python scripts/validate_pipeline_outputs.py
+          --summary-output /tmp/iski_pipeline_summary.json
+          --report-output /tmp/iski_pipeline_summary.md
+
+      - name: Reconcile SQLite analytics layer
+        run: python scripts/reconcile_analytics_sqlite.py --database /tmp/iski_analytics.db

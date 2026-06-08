@@ -30,6 +30,8 @@ risk önceliklendirmesi üreten karar destek hattıdır.
 - `python3 -m pipeline.05_advanced_scenarios`
 - `python3 scripts/reporting/generate_chapter4_assets.py`
 - `python3 scripts/build_analytics_sqlite.py`
+- `python3 scripts/validate_pipeline_outputs.py`
+- `python3 scripts/reconcile_analytics_sqlite.py`
 - `streamlit run app/main.py`
 
 ## Hızlı Başlangıç
@@ -39,7 +41,9 @@ risk önceliklendirmesi üreten karar destek hattıdır.
 4. `python3 -m pipeline.05_advanced_scenarios`
 5. `python3 scripts/reporting/generate_chapter4_assets.py`
 6. `python3 scripts/build_analytics_sqlite.py`
-7. `streamlit run app/main.py`
+7. `python3 scripts/validate_pipeline_outputs.py --summary-output outputs/pipeline_run_summary.json --report-output outputs/pipeline_run_summary.md`
+8. `python3 scripts/reconcile_analytics_sqlite.py --database outputs/iski_analytics.db`
+9. `streamlit run app/main.py`
 
 Detaylı, adım adım operasyon ve çıktı kontrolü için `RUNBOOK.md` dosyasına bakın.
 
