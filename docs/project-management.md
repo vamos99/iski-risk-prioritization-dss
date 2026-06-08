@@ -45,9 +45,7 @@ Recommended board columns:
 
 | Priority | Area | Task | Acceptance Criteria |
 | --- | --- | --- | --- |
-| P1 | data-pipeline | Add SQLite view reconciliation check | View totals match `outputs/chapter4` city and district summaries. |
 | P2 | dashboard | Add district drill-down summary | Selecting a district shows top neighborhoods and risk mix. |
-| P2 | data-pipeline | Add freshness and completeness checks | Pipeline reports missing core input files and row-count changes. |
 | P2 | docs | Add decision-support walkthrough | README explains how a non-technical reviewer should read the dashboard. |
 
 ## Recently Done
@@ -56,6 +54,8 @@ Recommended board columns:
 | --- | --- | --- |
 | analytics | Add metric dictionary for risk KPIs | `docs/metrics.md` |
 | spatial | Add map join quality table to dashboard | `build_map_join_quality_table` and map tab table |
+| data-pipeline | Add freshness and completeness checks | `scripts/validate_pipeline_outputs.py` |
+| data-pipeline | Add SQLite view reconciliation check | `scripts/reconcile_analytics_sqlite.py` |
 
 ## Sprint Plan
 

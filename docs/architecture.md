@@ -63,6 +63,4 @@ flowchart LR
 
 | Priority | Work | Why it matters |
 | --- | --- | --- |
-| P1 | SQLite reconciliation check | Confirms SQL view totals match `outputs/chapter4` city and district summaries. |
 | P2 | District drill-down summary | Makes the dashboard more useful for non-technical review by district managers. |
-| P2 | Pipeline run summary | Records row counts, generated files and warnings after each run. |
