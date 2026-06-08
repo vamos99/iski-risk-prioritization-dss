@@ -35,7 +35,7 @@ logger = setup_logger("iski.pipeline.05v3")
 # Not: Bu ağırlıklar rastgele değildir. src/analysis/ahp_calculator.py içindeki
 # ikili karşılaştırma matrislerinden Eigenvector (Özvektör) yöntemiyle türetilmiştir.
 # Her iki alt boyut için Kararlılık Oranı (Consistency Ratio - CR) = 0.0003 çıkmıştır.
-# CR < 0.10 olduğu için bu ağırlıklar matematiksel olarak kesin tutarlıdır.
+# CR < 0.10 olduğu için ağırlık seti AHP tutarlılık eşiğini karşılar.
 # ==========================================
 
 # PoF (Probability of Failure): İhtimal Boyutu (CR = 0.0003)
@@ -49,7 +49,7 @@ POF_WEIGHTS = {
 }
 
 # CoF (Consequence of Failure): Etki ve Sonuç Boyutu (CR = 0.0003)
-# EPA ve AWWA Varlık Yönetimi Yönergeleri ile uyumlu hiyerarşi
+# Varlık yönetimi mantığına uygun etki hiyerarşisi
 COF_WEIGHTS = {
     "nufus":              0.25,  # Kaç kişi etkilenir?
     "sikayet_sayisi":      0.25,  # Vatandaş reaksiyonu (İtibar riski)

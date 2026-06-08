@@ -3,6 +3,7 @@ import pandas as pd
 from src.analysis.executive_summary import (
     build_city_risk_summary,
     build_district_risk_summary,
+    build_map_join_quality_table,
     build_top_priority_neighborhoods,
     normalize_risk_bucket,
 )
@@ -71,3 +72,24 @@ def test_build_top_priority_neighborhoods_adds_reason() -> None:
 
     assert top_rows.iloc[0]["mahalle"] == "ONE"
     assert top_rows.iloc[0]["oncelik_nedeni"] == "Altyapı riski baskın"
+
+
+def test_build_map_join_quality_table_formats_coverage() -> None:
+    table = build_map_join_quality_table(
+        {
+            "both": 90,
+            "left_only": 5,
+            "right_only": 5,
+            "both_ratio": 0.9,
+            "left_only_ratio": 0.05,
+            "right_only_ratio": 0.05,
+            "dropped_geo_duplicates": 2,
+            "filtered_geo_outside_model": 5,
+        }
+    )
+
+    assert table.iloc[0]["Kontrol"] == "Eşleşen mahalle"
+    assert table.iloc[0]["Adet"] == 90
+    assert table.iloc[0]["Oran"] == "%90.0"
+    assert table.iloc[3]["Kontrol"] == "Silinen geometri duplikasyonu"
+    assert table.iloc[3]["Adet"] == 2

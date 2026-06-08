@@ -34,6 +34,7 @@ from src.analysis.executive_summary import (
     build_city_risk_summary,
     build_data_quality_summary,
     build_district_risk_summary,
+    build_map_join_quality_table,
     build_risk_distribution,
     build_top_priority_neighborhoods,
 )
@@ -378,14 +379,10 @@ with tab_map:
             how="left",
         )
 
-        if join_report:
-            st.caption(
-                "Harita kapsam kontrolü | "
-                f"eşleşen={join_report['both']} (%{join_report['both_ratio'] * 100:.1f}), "
-                f"left_only={join_report['left_only']} (%{join_report['left_only_ratio'] * 100:.1f}), "
-                f"right_only={join_report['right_only']} (%{join_report['right_only_ratio'] * 100:.1f}), "
-                f"geometri_duplikasyon_temizliği={join_report['dropped_geo_duplicates']}"
-            )
+        map_join_quality = build_map_join_quality_table(join_report)
+        if not map_join_quality.empty:
+            st.caption("Harita kapsam kontrolü")
+            st.dataframe(map_join_quality, use_container_width=True, hide_index=True)
 
         m = folium.Map(location=[41.0082, 28.9784], zoom_start=10, tiles="CartoDB positron")
 

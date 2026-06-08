@@ -149,6 +149,52 @@ def build_data_quality_summary(df: pd.DataFrame, join_report: dict[str, float] |
     }
 
 
+def build_map_join_quality_table(join_report: dict[str, float] | None) -> pd.DataFrame:
+    """Convert map join diagnostics into a manager-readable table."""
+    if not join_report:
+        return pd.DataFrame(columns=["Kontrol", "Adet", "Oran", "Açıklama"])
+
+    rows = [
+        {
+            "Kontrol": "Eşleşen mahalle",
+            "Adet": int(join_report.get("both", 0)),
+            "Oran": _format_join_ratio(join_report.get("both_ratio")),
+            "Açıklama": "Model çıktısı ve GeoJSON sınırı aynı anahtarda buluştu.",
+        },
+        {
+            "Kontrol": "Sadece GeoJSON",
+            "Adet": int(join_report.get("left_only", 0)),
+            "Oran": _format_join_ratio(join_report.get("left_only_ratio")),
+            "Açıklama": "Haritada var, model çıktısında yok; kapsam farkı olabilir.",
+        },
+        {
+            "Kontrol": "Sadece model çıktısı",
+            "Adet": int(join_report.get("right_only", 0)),
+            "Oran": _format_join_ratio(join_report.get("right_only_ratio")),
+            "Açıklama": "Modelde var, harita sınırında yok; isim/anahtar kontrolü gerekir.",
+        },
+        {
+            "Kontrol": "Silinen geometri duplikasyonu",
+            "Adet": int(join_report.get("dropped_geo_duplicates", 0)),
+            "Oran": "—",
+            "Açıklama": "Aynı anahtar için en büyük geometri tutuldu.",
+        },
+        {
+            "Kontrol": "Filtrelenen harita sınırı",
+            "Adet": int(join_report.get("filtered_geo_outside_model", 0)),
+            "Oran": "—",
+            "Açıklama": "Modelde olmayan sınırlar harita katmanından çıkarıldı.",
+        },
+    ]
+    return pd.DataFrame(rows)
+
+
+def _format_join_ratio(value: float | None) -> str:
+    if value is None or pd.isna(value):
+        return "—"
+    return f"%{value * 100:.1f}"
+
+
 def _priority_reason(row: pd.Series) -> str:
     pof = row[POF_SCORE_COL]
     cof = row[COF_SCORE_COL]
