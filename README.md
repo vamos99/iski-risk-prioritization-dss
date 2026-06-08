@@ -15,6 +15,7 @@ risk önceliklendirmesi üreten karar destek hattıdır.
 - SQLite + SQL view katmanı ile sorgulanabilir analitik çıktı
 - Hafif CI ile Python compile, unit test ve SQLite build kontrolü
 - Mimari ve veri akışı özeti: `docs/architecture.md`
+- PoF/CoF, risk skoru ve harita join kalite sözlüğü: `docs/metrics.md`
 - GitHub Issues/Projects için hafif sprint ve backlog akışı: [Live Project Board](https://github.com/users/vamos99/projects/2) / `docs/project-management.md`
 
 ## Nihai Metodoloji (Source of Truth)

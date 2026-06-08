@@ -45,12 +45,17 @@ Recommended board columns:
 
 | Priority | Area | Task | Acceptance Criteria |
 | --- | --- | --- | --- |
-| P1 | analytics | Add metric dictionary for risk KPIs | PoF, CoF, risk score, and risk band definitions are documented. |
-| P1 | spatial | Add map join quality table to dashboard | Matched, left-only, and right-only counts are visible for the latest run. |
 | P1 | data-pipeline | Add SQLite view reconciliation check | View totals match `outputs/chapter4` city and district summaries. |
 | P2 | dashboard | Add district drill-down summary | Selecting a district shows top neighborhoods and risk mix. |
 | P2 | data-pipeline | Add freshness and completeness checks | Pipeline reports missing core input files and row-count changes. |
 | P2 | docs | Add decision-support walkthrough | README explains how a non-technical reviewer should read the dashboard. |
+
+## Recently Done
+
+| Area | Task | Evidence |
+| --- | --- | --- |
+| analytics | Add metric dictionary for risk KPIs | `docs/metrics.md` |
+| spatial | Add map join quality table to dashboard | `build_map_join_quality_table` and map tab table |
 
 ## Sprint Plan
 
@@ -80,4 +85,5 @@ Recommended board columns:
 
 ## GitHub Projects Setup
 
-Create a repository project named `ISKI Risk Prioritization Board`, add the fields above, then use the issue templates in `.github/ISSUE_TEMPLATE/` for new work.
+The project board already exists. Keep future issues small and link PRs back to
+the board items when implementation starts.

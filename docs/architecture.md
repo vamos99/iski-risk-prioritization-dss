@@ -63,8 +63,6 @@ flowchart LR
 
 | Priority | Work | Why it matters |
 | --- | --- | --- |
-| P1 | Metric dictionary for risk KPIs | PoF, CoF, risk score and risk bands should be defined in one auditable place. |
-| P1 | Map join quality table | The map exists; the next useful step is showing matched, unmatched and duplicate geography counts in the dashboard. |
 | P1 | SQLite reconciliation check | Confirms SQL view totals match `outputs/chapter4` city and district summaries. |
 | P2 | District drill-down summary | Makes the dashboard more useful for non-technical review by district managers. |
 | P2 | Pipeline run summary | Records row counts, generated files and warnings after each run. |
